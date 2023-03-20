@@ -17,7 +17,7 @@ void draw(){
   background(0, 0, 0);
   board();
   
-  snake.update();
+  snake.update(food);
   
   snake.show();
   food.show();
@@ -28,7 +28,7 @@ void keyPressed(){
   if (key == CODED) {
     if (keyCode == UP || keyCode == DOWN || keyCode == RIGHT || keyCode == LEFT) {
       //print(keyCode); 
-      snake.direction = keyCode;
+      snake.setDirection(keyCode);
     }
     if(snake.direction != snake.previus_direction){
       //snake.update();
@@ -60,9 +60,10 @@ class Snake{
   //private SnakeBody head;
   private ArrayList<SnakeBody> body = new ArrayList<SnakeBody>();
   private int direction;
-  private int[] directions = {UP,RIGHT, DOWN, LEFT};
+  //private int[] directions = {UP,RIGHT, DOWN, LEFT};
   private int previus_direction;
   private SnakeBody head;
+  
   Snake(int x, int y){
     SnakeBody head = new SnakeBody(x, y);
     body.add(head);
@@ -71,17 +72,7 @@ class Snake{
     previus_direction = direction;
     this.head = head;
   }
-  void growth() {
-    int lastI = body.size()-1;
-    
-    SnakeBody last = body.get(lastI);
-    int x = last.x, y = last.y;
-    if(direction == UP) y += Square_size;
-    if(direction == RIGHT) x -= Square_size;
-    if(direction == DOWN) y -= Square_size;
-    if(direction == LEFT) x += Square_size;
-    body.add(new SnakeBody(x, y));
-  }
+
   
   void show() {
     fill(25, 150, 30);
@@ -89,8 +80,15 @@ class Snake{
       square(el.x, el.y, Square_size);
     }
   }
-  
-  void update() {
+  void setDirection(int direc) {
+    if(direction == UP && direc == DOWN) return;
+    if(direction == DOWN && direc == UP) return;
+    if(direction == LEFT && direc == RIGHT) return;
+    if(direction == RIGHT && direc == LEFT) return;
+    
+    direction = direc;
+  }
+  void update(Food food) {
     for(int i = body.size() -1; i >0;i--){
       body.get(i).x = body.get(i-1) .x;
       body.get(i).y = body.get(i-1).y;
@@ -107,6 +105,34 @@ class Snake{
     if(direction == DOWN) {
       head.y += Square_size;
     }
+    
+    if(hasEaten(food)){
+      growth();
+      food.randomFood();
+    }
+    if(AmIDead()){
+      noLoop();
+    }
+  }
+  
+  private boolean hasEaten(Food food){
+    return (food.x == head.x && food.y == head.y);
+  }
+  
+  private void growth() {
+    int lastI = body.size()-1;
+    
+    SnakeBody last = body.get(lastI);
+    int x = last.x, y = last.y;
+    if(direction == UP) y += Square_size;
+    if(direction == RIGHT) x -= Square_size;
+    if(direction == DOWN) y -= Square_size;
+    if(direction == LEFT) x += Square_size;
+    body.add(new SnakeBody(x, y));
+  }
+  
+  private boolean AmIDead() {
+    return (head.x < 0 || head.x > Window_w) || (head.y <0 || head.y > Window_h);
   }
 }
 
@@ -119,5 +145,12 @@ class Food extends SnakeBody{
   void show() {
     fill(200, 40, 50);
     square(this.x,this.y, Square_size);
+  }
+  
+  void randomFood() {
+    int max_x = Window_w/Square_size;
+    x = int(random(max_x)) * Square_size;
+    int max_y = Window_h/Square_size;
+    y = int(random(max_y))*Square_size;
   }
 }
